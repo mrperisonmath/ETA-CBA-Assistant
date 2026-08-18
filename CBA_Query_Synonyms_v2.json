@@ -1,0 +1,22 @@
+{
+  "grievance_family": {
+    "canonical": "grievance",
+    "terms": [
+      "grieve",
+      "grieved",
+      "grieving",
+      "grievable",
+      "grievance",
+      "grievances",
+      "grievance procedure",
+      "grievance process",
+      "contract violation",
+      "contract violations"
+    ],
+    "concepts": [
+      "grievance",
+      "grievance procedure",
+      "contract violation"
+    ]
+  }
+}

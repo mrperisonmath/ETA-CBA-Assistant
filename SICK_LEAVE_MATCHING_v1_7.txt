@@ -1,0 +1,15 @@
+v1.7 sick-leave matching fix
+
+Inspected the actual indexed sick-leave passages and metadata.
+
+Added search-only sick-leave terminology:
+sick leave, sick day(s), sick time, illness, personal illness,
+absence due to illness, calling in sick, use sick days, use sick leave.
+
+Added a sick_leave concept family to relevant records.
+
+Exact CBA language is unchanged. The global relevance threshold is not lowered.
+The bridge is accepted only when the candidate is substantively indexed as sick-leave
+or illness related.
+
+Remote-work and grievance safeguards remain unchanged.

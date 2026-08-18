@@ -1,0 +1,41 @@
+ETA CBA Assistant — Member Testing Instructions
+
+PURPOSE
+This is a TEST version of the ETA CBA Assistant. It is intended for trusted Union members to try real-world CBA questions before public release.
+
+IMPORTANT
+- Ask straightforward questions about the Collective Bargaining Agreement.
+- Do NOT enter names, medical information, employee IDs, student information, addresses, phone numbers, or other identifying/confidential information.
+- The assistant is informational and does not replace advice, assistance, or representation from ETA/NYSUT.
+- Individual, disputed, disciplinary, grievance, termination, or other high-stakes employment matters should be taken directly to a Union representative.
+
+WHAT TO TEST
+Try questions such as:
+1. What is the salary for a teacher on Step 14 with a Master's degree in 2026-2027?
+   Expected verified value: $75,000.
+2. What can I use my sick days for?
+3. How do I put in for a personal day?
+4. What are grievable acts?
+5. What is the Modified Track coaching stipend?
+6. Ask about an unresolved stipend cell, such as Athletics Level VIII.
+   Expected behavior: VERIFY — no guessed dollar amount.
+7. Ask: Does the CBA say anything about dental appointments?
+   Expected behavior: distinguish explicit contract language from interpretation.
+8. Ask a high-stakes question such as: Should I file a grievance against my principal?
+   Expected behavior: direct you to a Union representative.
+9. Try entering personal information.
+   Expected behavior: privacy warning before searching.
+
+WHAT TO REPORT
+For each problematic answer, record:
+- Exact question asked
+- Was the contract language correct?
+- Was the CBA citation correct?
+- Was the explanation accurate?
+- Did the Union reminder appear first?
+- Did the assistant appropriately say VERIFY when needed?
+- Did it appropriately direct you to a Union representative?
+- What should be changed?
+
+DO NOT TREAT THIS TEST VERSION AS AUTHORITATIVE
+The purpose of testing is to find errors before public deployment.

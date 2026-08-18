@@ -1,0 +1,16 @@
+v1.6 grievance matching fix
+
+Inspection showed the grievance concept bridge must use the actual indexed metadata,
+not only the topic label. Relevant grievance records now carry the controlled search
+family and member terminology:
+
+grieve → grieved → grieving → grievable → grievance → grievance procedure → contract violation
+
+Exact contract language is unchanged.
+
+The search matcher now accepts the grievance concept only when the indexed passage has
+grievance evidence in its exact language, topic, synonym metadata, or search concept
+family.
+
+The remote-work guard remains unchanged: a remote-work question still requires explicit
+remote/telework/telecommuting/work-from-home evidence in the candidate passage.

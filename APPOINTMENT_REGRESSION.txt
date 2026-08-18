@@ -1,0 +1,14 @@
+Doctor/Dental Appointment Regression Tests
+
+Questions:
+1. "Can I use a sick day for a doctor appointment?"
+2. "Can I use a sick day for a dental appointment?"
+3. "Do sick days cover dentist appointments?"
+
+Required behavior:
+- Retrieve the relevant sick-leave provision and show the CBA citation.
+- Clearly state: "The contract does not specifically identify doctor or dental appointments."
+- Do NOT say that the CBA definitely permits the appointment.
+- Do NOT say that the CBA definitely prohibits it unless the contract expressly says so.
+- Explain that the assistant should not infer coverage from general sick-leave language.
+- Direct individual/unclear cases to a Union representative.

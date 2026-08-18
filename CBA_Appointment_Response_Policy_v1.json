@@ -1,0 +1,26 @@
+{
+  "version": "1.5",
+  "trigger_terms": [
+    "doctor appointment",
+    "doctor appointments",
+    "medical appointment",
+    "dental appointment",
+    "dental appointments",
+    "dentist",
+    "dentist appointment"
+  ],
+  "topic": "Sick Leave",
+  "behavior": {
+    "find_relevant_sick_leave_provision": true,
+    "state_contract_does_not_specifically_identify_appointments": true,
+    "do_not_infer_appointments_are_covered": true,
+    "direct_to_union_rep_if_individual_or_unclear": true
+  },
+  "member_facing_explanation": "The CBA's sick-leave provision is the relevant contract language to review. However, the contract does not specifically identify doctor or dental appointments as a permitted use. The assistant should not infer coverage from the general sick-leave language. For an individual situation or if the application is unclear, contact a Union representative.",
+  "source_record_example": {
+    "article": null,
+    "section": "6.2",
+    "subsection": "6.1.6",
+    "printed_page_start": 37
+  }
+}

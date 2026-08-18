@@ -1,0 +1,14 @@
+Remote-work response fix
+
+Question:
+"What is the district policy on remote work?"
+
+Required behavior:
+- Do not return an unrelated leave/work passage.
+- Do not infer that the CBA contains a remote-work policy.
+- State that a sufficiently strong matching CBA provision was not located.
+- Recommend checking with a Union representative for clarification.
+- Do not claim the subject is definitely absent from the CBA solely because the search did not find it.
+
+The matching threshold remains conservative. Specific remote-work terminology must be
+present in the candidate passage before a remote-work question can be answered from it.

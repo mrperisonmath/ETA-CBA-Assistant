@@ -1,0 +1,17 @@
+ETA CBA Assistant — Tester Feedback Form
+
+Tester:
+Date:
+
+1. Exact question:
+2. Answer received:
+3. Was the contract language accurate? YES / NO / UNSURE
+4. Was the CBA citation accurate? YES / NO / UNSURE
+5. Was the AI explanation accurate/helpful? YES / NO / UNSURE
+6. Did the Union reminder appear before the answer? YES / NO
+7. If a table value was involved, was it correct? YES / NO / VERIFY
+8. If the issue was high-stakes, did the assistant direct you to a Union representative? YES / NO / NOT APPLICABLE
+9. Did the assistant request or expose personal information? YES / NO
+10. What should be changed?
+
+Additional comments:

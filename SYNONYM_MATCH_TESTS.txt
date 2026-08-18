@@ -1,0 +1,18 @@
+Synonym-aware matching regression tests
+
+1. "What are grievable acts?"
+   Expected: find the grievance provision even if the contract uses "grievance" rather than "grievable".
+
+2. "Can I grieve this?"
+   Expected: grievance-related provision, not a weak-match failure.
+
+3. "What is the district policy on remote work?"
+   Expected: do NOT return an unrelated leave provision merely because of generic word overlap.
+
+4. "What is the salary for Step 14 with a Master's degree in 2026-2027?"
+   Expected: locked verified value $75,000.
+
+5. "What is Athletics Level VIII stipend?"
+   Expected: VERIFY; no guessed amount.
+
+The matching threshold is not lowered. Synonym families provide a controlled semantic bridge only when the retrieved passage is substantively related to that family.

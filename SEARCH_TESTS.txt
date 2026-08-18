@@ -1,0 +1,7 @@
+Weak-match regression test
+- Remote-work question must not retrieve an unrelated passage merely because of the word "work".
+- Step 14 Master's 2026-2027 must return the locked $75,000 value.
+- Sick-leave question should retrieve sick-leave language.
+- Athletics Level VIII must return VERIFY, not a guessed stipend.
+- High-stakes questions must direct the member to a Union representative.
+- Personal/medical identifying information must trigger the privacy warning.

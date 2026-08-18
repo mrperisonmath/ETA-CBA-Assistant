@@ -1,0 +1,21 @@
+Grievance concept family
+
+The member-search vocabulary treats these as one controlled concept family:
+
+grieve → grievable → grievance → grievance procedure → contract violation
+
+Recognized forms include:
+- grieve
+- grieved
+- grieving
+- grievable
+- grievance / grievances
+- grievance procedure
+- grievance process
+- contract violation / contract violations
+
+This is search metadata only. It does NOT alter or rewrite exact CBA language.
+
+A grievance-family synonym may only bridge a query to a candidate passage when the
+candidate already meets the conservative relevance threshold and the passage/topic
+is substantively grievance-related. Generic word overlap remains insufficient.

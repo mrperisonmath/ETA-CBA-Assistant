@@ -1,0 +1,105 @@
+{
+  "version": "5",
+  "salary_tables": {
+    "verified_examples": [
+      {
+        "lane": "Masters",
+        "step": 12,
+        "school_year": "2026-2027",
+        "salary": 73500,
+        "printed_page": 8,
+        "verified": true,
+        "locked": true
+      },
+      {
+        "lane": "Masters",
+        "step": 14,
+        "school_year": "2026-2027",
+        "salary": 75000,
+        "printed_page": 8,
+        "verified": true,
+        "locked": true,
+        "verification_source": "User-provided correction"
+      },
+      {
+        "lane": "Masters",
+        "step": 20,
+        "school_year": "2026-2027",
+        "salary": 102000,
+        "printed_page": 8,
+        "verified": true,
+        "locked": true
+      },
+      {
+        "lane": "Masters Plus 30",
+        "step": 12,
+        "school_year": "2026-2027",
+        "salary": 75750,
+        "printed_page": 9,
+        "verified": true,
+        "locked": true
+      },
+      {
+        "lane": "Masters Plus 30",
+        "step": 14,
+        "school_year": "2026-2027",
+        "salary": 78250,
+        "printed_page": 9,
+        "verified": true,
+        "locked": true
+      },
+      {
+        "lane": "Masters Plus 30",
+        "step": 20,
+        "school_year": "2026-2027",
+        "salary": 107000,
+        "printed_page": 9,
+        "verified": true,
+        "locked": true
+      }
+    ],
+    "rule": "Locked verified cells may be returned as exact values. Unlocked or unresolved cells must not be inferred.",
+    "correction_note": "2026-2027 Masters Step 14 is $75,000, per user verification. Do not overwrite this locked value with OCR-derived data."
+  },
+  "supplemental_tables": {
+    "verify_cells": [
+      {
+        "category": "Athletics",
+        "level": "VIII",
+        "years": "all relevant years",
+        "status": "VERIFY"
+      },
+      {
+        "category": "Athletics",
+        "level": "IX",
+        "years": "all relevant years",
+        "status": "VERIFY"
+      },
+      {
+        "category": "Music",
+        "level": "VIII",
+        "years": "all relevant years",
+        "status": "VERIFY"
+      },
+      {
+        "category": "Music",
+        "level": "IX",
+        "years": "all relevant years",
+        "status": "VERIFY"
+      },
+      {
+        "category": "Music",
+        "level": "X",
+        "years": "all relevant years",
+        "status": "VERIFY"
+      },
+      {
+        "category": "Extracurricular",
+        "level": "II",
+        "years": "Year 7+",
+        "status": "VERIFY"
+      }
+    ],
+    "rule": "VERIFY means the value has not been manually verified and must not be guessed, interpolated, or treated as $0."
+  }
+}
