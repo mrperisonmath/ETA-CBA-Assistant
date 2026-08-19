@@ -1,6 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
+<!doctype html><html lang='en'><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ETA CBA Assistant — Member Testing</title>
@@ -24,8 +22,10 @@ button.secondary{background:#edf1f5;color:#243b53;margin-left:8px}
 .bad{color:#9b1c1c;font-weight:700}
 .feedback textarea{min-height:70px}
 </style>
-</head>
-<body>
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head><body><div id="kbStatus" style="margin:10px 0;padding:8px;border-radius:6px;font-size:14px;">Loading CBA knowledge base…</div>
+
 <div class="wrap">
 <header>
 <h1>ETA CBA Assistant — Member Testing Version</h1>
@@ -63,209 +63,146 @@ button.secondary{background:#edf1f5;color:#243b53;margin-left:8px}
 </div>
 </div>
 
+
+
 <script>
-let KB=[];
-let OVERLAY=null;
+"use strict";
 
-const stop=new Set(("the a an and or of to for in on is are do does what how can may my your i me we you this that with from by about it be have has get use day days teacher teachers teaching assistant assistants contract cba says say").split(/\s+/));
+let CBA_RECORDS = [];
+let CBA_OVERLAY = {};
+let CBA_READY = false;
 
-function norm(s){return (s||"").toLowerCase().replace(/[^a-z0-9$%+]+/g," ").trim();}
-function tokens(s){return [...new Set(norm(s).split(/\s+/).filter(x=>x.length>2&&!stop.has(x)))];}
-function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
-
-function isPrivacy(q){
- return /\b(my name is|my medical|my diagnosis|employee id|employee number|student name|phone number|home address|email is|ssn|social security)\b/i.test(q);
+function norm(s) {
+  return String(s || "").toLowerCase().replace(/[^a-z0-9$%+]+/g, " ").trim();
 }
-function isHighStakes(q){
- return /\b(grievance|grievances|disciplin|terminated|termination|fired|fire me|suspend|suspension|retaliat|lawsuit|legal|lawyer|attorney|should i|what should i do|violation|violated|unfair|layoff|recall|dismiss|dismissal)\b/i.test(q);
+const STOP = new Set(("the a an and or of to for in on is are do does what how can may my your i me we you this that with from by about it be have has get use day days teacher teachers teaching assistant assistants contract cba says say").split(/\s+/));
+function tokens(s) {
+  return [...new Set(norm(s).split(/\s+/).filter(t => t.length > 2 && !STOP.has(t)))];
 }
-const SYNONYMS={
- grievance:["grieve","grieved","grieving","grievable","grievance","grievances","grievance procedure","grievance process","contract violation","contract violations"],
- sick_leave:["sick leave","sick day","sick days","illness","calling in sick"],
- personal_leave:["personal day","personal days","personal leave"],
- salary:["salary","pay","pay rate","step","salary schedule","masters","master's","master degree"],
- modified_track:["modified track","modified track coaching","modified athletics","track coach"],
- stipend:["stipend","coaching stipend","coach pay","supplemental pay","extra duty pay"],
- retirement:["retirement","retire","retirement benefit","retirement benefits"],
- professional_development:["professional development","professional development days","workshop","conference"]
-};
-function synonymFamilies(q){
- const x=norm(q), fam=[];
- for(const [k,terms] of Object.entries(SYNONYMS)){
-   if(terms.some(t=>x.includes(norm(t)))) fam.push([k,terms]);
- }
- return fam;
+function category(q) {
+  const x = norm(q);
+  if (/salary|pay|step|master|bachelor/.test(x)) return "Salary / Compensation";
+  if (/stipend|coach|coaching|modified|track|athletic|advisor|supplemental|extracurricular/.test(x)) return "Supplemental Activities / Stipends";
+  if (/sick|illness|medical leave|calling in sick/.test(x)) return "Sick Leave";
+  if (/personal day|personal leave/.test(x)) return "Personal Leave";
+  if (/grievance|grievable|grieve|contract violation/.test(x)) return "Grievance Procedure";
+  return null;
 }
-function sickLeaveConceptMatch(q, r){
- const qx=norm(q), text=norm(r.exact_contract_language||"");
- const topic=norm(r.topic_category||"");
- const syn=norm((r.synonyms_common_member_terminology||[]).join(" "));
- const fam=norm((r.search_concept_families||[]).join(" "));
- const qHas=/\b(sick leave|sick day|sick days|sick time|illness|calling in sick|use sick days|use sick leave)\b/.test(qx);
- const recordHas=/\bsick leave|sick days?|illness\b/.test(text+" "+topic);
- const indexedFamily=/\bsick_leave\b/.test(fam);
- const indexedSyn=/\bsick leave|sick days?|sick time|illness|calling in sick\b/.test(syn);
- return qHas && (recordHas || indexedFamily || indexedSyn);
+function score(q, r) {
+  const text = norm(r.exact_contract_language || "");
+  let s = 0;
+  for (const t of tokens(q)) {
+    const hits = text.split(t).length - 1;
+    if (hits) s += Math.min(hits, 7) * (t.length >= 6 ? 2 : 1);
+  }
+  const cat = category(q);
+  if (cat && norm(r.topic_category) === norm(cat)) s += 10;
+  const syn = norm((r.synonyms_common_member_terminology || []).join(" "));
+  for (const t of tokens(q)) if (syn.includes(t)) s += 5;
+  const fam = norm((r.search_concept_families || []).join(" "));
+  const qx = norm(q);
+  if (fam.includes("grievance") && /grieve|grievable|grievance|contract violation/.test(qx)) s += 5;
+  if (fam.includes("sick_leave") && /sick leave|sick day|sick days|sick time|illness|calling in sick|use sick days|use sick leave/.test(qx)) s += 5;
+  return s;
 }
-
-function grievanceConceptMatch(q, r){
- const qx=norm(q), text=norm(r.exact_contract_language||"");
- const topic=norm(r.topic_category||"");
- const indexedSyn=norm((r.synonyms_common_member_terminology||[]).join(" "));
- const families=norm((r.search_concept_families||[]).join(" "));
- const qHas=/\b(grieve|grieved|grieving|grievable|grievance|grievances)\b/.test(qx);
- const indexedFamily=/\bgrievance\b/.test(families);
- const indexedSynMatch=/\b(grieve|grieved|grieving|grievable|grievance|grievances)\b/.test(indexedSyn);
- const passageHas=/\b(grievance|grievances|grievable|grieve|grieved|grieving)\b/.test(text);
- const topicHas=/grievance|griev/.test(topic);
- const violation=/contract violation|contract violations/.test(qx) &&
-                  /grievance|griev/.test(text+" "+topic+" "+indexedSyn);
- return qHas && (indexedFamily || indexedSynMatch || passageHas || topicHas || violation);
+function search(q) {
+  return CBA_RECORDS.map(r => [score(q, r), r]).filter(x => x[0] > 0).sort((a,b) => b[0] - a[0]).slice(0, 5);
 }
-
-function synonymAwareStrongMatch(q,results){
- if(!results.length)return false;
- const [top,r]=results[0];
- const qx=norm(q), text=norm(r.exact_contract_language||"");
- const topic=norm(r.topic_category||"");
- const terms=tokens(q);
- const substantive=terms.filter(t=>t.length>=5);
- const direct=substantive.filter(t=>text.includes(t));
- const genericOnly = substantive.length>0 && direct.length===0;
-
- // Explicitly reject "remote work" unless the candidate actually discusses
- // remote/telework/work-from-home language. A generic occurrence of "work"
- // is not evidence of a remote-work provision.
- if(/\b(remote work|remote working|telework|telecommut|work from home|working from home)\b/.test(qx)){
-   const remoteEvidence=/\b(remote|telework|telecommut|work from home|working from home)\b/.test(text);
-   if(!remoteEvidence)return false;
- }
-
- // Generic single-word overlap is never enough for a specific policy question.
- if(genericOnly && substantive.length>=1)return false;
-
- const fams=synonymFamilies(q);
- const familyHits=fams.filter(([k,terms])=>terms.some(t=>text.includes(norm(t))));
- const familyTopic=familyHits.some(([k])=>topic_ok_for_family(k,topic,text));
-
- if(top>=12 && direct.length>=2)return true;
- if(top>=12 && direct.length>=1 && familyTopic)return true;
- if(top>=12 && familyTopic && familyHits.length>=1)return true;
- if(top>=12 && grievanceConceptMatch(q,r) && familyTopic)return true;
- if(top>=12 && sickLeaveConceptMatch(q,r))return true;
- return false;
+function grievanceConceptMatch(q, r) {
+  const qx = norm(q), text = norm(r.exact_contract_language || ""), topic = norm(r.topic_category || "");
+  const syn = norm((r.synonyms_common_member_terminology || []).join(" "));
+  const fam = norm((r.search_concept_families || []).join(" "));
+  const qHas = /\b(grieve|grieved|grieving|grievable|grievance|grievances)\b/.test(qx);
+  return qHas && (/\bgrievance\b/.test(fam) || /\b(grieve|grieved|grieving|grievable|grievance|grievances)\b/.test(syn) || /\b(grievance|grievances|grievable|grieve|grieved|grieving)\b/.test(text) || /grievance|griev/.test(topic));
 }
-
-function topic_ok_for_family(k,topic,text){
- if(k==="grievance")return /grievance|griev/.test(topic+" "+text);
- if(k==="sick_leave")return /sick|leave|illness/.test(topic+" "+text);
- if(k==="personal_leave")return /personal|leave/.test(topic+" "+text);
- if(k==="salary")return /salary|compensation|step|pay/.test(topic+" "+text);
- if(k==="modified_track")return /supplemental|stipend|athletic|modified|track/.test(topic+" "+text);
- if(k==="stipend")return /stipend|supplemental|coaching/.test(topic+" "+text);
- return false;
+function sickLeaveConceptMatch(q, r) {
+  const qx = norm(q), text = norm(r.exact_contract_language || ""), topic = norm(r.topic_category || "");
+  const syn = norm((r.synonyms_common_member_terminology || []).join(" "));
+  const fam = norm((r.search_concept_families || []).join(" "));
+  const qHas = /\b(sick leave|sick day|sick days|sick time|illness|calling in sick|use sick days|use sick leave)\b/.test(qx);
+  return qHas && (/\bsick leave|sick days?|illness\b/.test(text+" "+topic) || /\bsick_leave\b/.test(fam) || /\bsick leave|sick days?|sick time|illness|calling in sick\b/.test(syn));
 }
-function isAppointmentQuestion(q){
- return /\b(doctor|dentist|dental|medical)\b.{0,35}\b(appointment|appointments|visit|visits)\b|\b(appointment|appointments|visit|visits)\b.{0,35}\b(doctor|dentist|dental|medical)\b/i.test(q);
+function strong(q, results) {
+  if (!results || !results.length) return false;
+  const top = results[0][0], r = results[0][1], qx = norm(q), text = norm(r.exact_contract_language || "");
+  const substantive = tokens(q).filter(t => t.length >= 5);
+  const direct = substantive.filter(t => text.includes(t));
+  if (/\b(remote work|remote working|telework|telecommut|work from home|working from home)\b/.test(qx) &&
+      !/\b(remote|telework|telecommut|work from home|working from home)\b/.test(text)) return false;
+  if (substantive && !direct && !grievanceConceptMatch(q,r) && !sickLeaveConceptMatch(q,r)) return false;
+  return top >= 12 && (direct.length >= 1 || grievanceConceptMatch(q,r) || sickLeaveConceptMatch(q,r));
 }
-function appointmentResponse(){
- const rs=search("sick leave sick days illness");
- const r=rs.length ? rs[0][1] : null;
- let h=`<h2>📄 Contract Language</h2>`;
- if(r){
-   h+=`<div class="contract">${esc(r.exact_contract_language)}</div>
-   <h2>📚 CBA Citation</h2>
-   <div class="cite">Article ${esc(r.article||"not identified")} • Section ${esc(r.section||r.subsection||"not identified")} • printed page ${esc(r.printed_page_start)}</div>`;
- } else {
-   h+=`<p>I located the sick-leave topic in the CBA index, but the relevant passage could not be retrieved.</p>`;
- }
- h+=`<h2>🤖 AI Explanation</h2>
- <p>The sick-leave provision above is the relevant contract language to review for this question.</p>
- <div class="verify"><b>Important:</b> The contract does <b>not specifically identify doctor or dental appointments</b> as a permitted use in the language located. The assistant should not infer that these appointments are covered simply from the general sick-leave provision.</div>
- <p>If you are asking about your individual circumstances or are unsure how the provision applies, please contact a Union representative for clarification.</p>`;
- return h;
+function privacyWarning(q) {
+  return /\b(my name is|my medical|my diagnosis|employee id|employee number|student name|phone number|home address|email is|ssn|social security)\b/i.test(q);
 }
-
-function verifiedSalary(q){
- if(!OVERLAY) return null;
- const x=norm(q);
- const sm=x.match(/step\s*(\d{1,2})/);
- const step=sm?Number(sm[1]):null;
- const ym=x.match(/2026 2027|2025 2026|2027 2028|2028 2029/);
- const year=ym?ym[0].replace(" ","-"):null;
- if(!step || !year || !/master/.test(x)) return null;
- const lane=/plus 30/.test(x)?"Masters Plus 30":"Masters";
- return (OVERLAY.salary_tables.verified_examples||[]).find(v =>
-   v.lane===lane && v.step===step && v.school_year===year && v.locked===true
- ) || null;
+function highStakes(q) {
+  return /\b(disciplin|terminated|termination|fired|fire me|suspend|suspension|retaliat|lawsuit|legal|lawyer|attorney|should i|what should i do|unfair|layoff|recall|dismiss|dismissal)\b/i.test(q);
 }
-function verifyStipend(q){
- if(!OVERLAY) return false;
- const x=norm(q);
- return (OVERLAY.supplemental_tables.verify_cells||[]).some(v =>
-   x.includes(norm(v.category)) && x.includes(norm(v.level))
- );
+function setStatus(text, ok) {
+  const el = document.getElementById("kbStatus");
+  if (!el) return;
+  el.textContent = text;
+  el.style.background = ok ? "#e9f7ef" : "#fdecec";
+  el.style.border = "1px solid " + (ok ? "#7acb93" : "#e08b8b");
 }
-function answerQuestion(){
- const q=document.getElementById("q").value.trim();
- const box=document.getElementById("answer");
- if(!q){box.innerHTML="";return;}
- if(isPrivacy(q)){
-   box.innerHTML=`<div class="card privacy"><b>🔒 Privacy warning</b><p>Please remove personal, medical, employee-ID, student, or other identifying information and ask again using general contract terms.</p></div>`;
-   return;
- }
- let html=`<div class="card"><b>🤝 Union Reminder</b><p>This is an informational tool for straightforward contract questions. It does not replace advice or representation from ETA/NYSUT.</p>`;
- if(isHighStakes(q)){
-   html+=`<div class="high"><b>🔴 Please contact a Union representative.</b><p>This question appears to involve an individual or high-stakes employment matter. The assistant should not determine how the CBA applies to your individual situation.</p></div>`;
- }
- if(isAppointmentQuestion(q)){
-   html+=appointmentResponse();
- } else {
- const salary=verifiedSalary(q);
- if(salary){
-   html+=`<h2>📄 Contract Language</h2><p>This answer uses a manually verified and locked salary-table value.</p>
-   <h2>📚 CBA Citation</h2><div class="cite">Salary Schedule — printed page ${esc(salary.printed_page)}.</div>
-   <h2>🤖 AI Explanation</h2><p>For ${esc(salary.school_year)}, ${esc(salary.lane)}, Step ${salary.step}, the verified salary is <b>$${Number(salary.salary).toLocaleString()}</b>.</p>`;
- } else if(verifyStipend(q)){
-   html+=`<div class="verify"><b>⚠️ VERIFY — table cell not manually verified</b><p>The assistant will not guess or infer a stipend amount from neighboring rows. Please check the CBA table or contact a Union representative for clarification.</p></div>`;
- } else {
-   const results=search(q);
-   const strong=synonymAwareStrongMatch(q,results);
-   if(!strong){
-     html+=`<h2>📄 Contract Language</h2><p>I did not locate a sufficiently strong matching provision in the loaded CBA index.</p>
-     <h2>📚 CBA Citation</h2><p>No applicable provision was identified by this search.</p>
-     <h2>🤖 AI Explanation</h2><p>This does <b>not</b> prove that the subject is absent from the CBA. I did not locate supporting language. Please check with your Union representative for clarification.</p>`;
-   } else {
-     const r=results[0][1];
-     html+=`<h2>📄 Contract Language</h2><div class="contract">${esc(r.exact_contract_language)}</div>
-     <h2>📚 CBA Citation</h2><div class="cite">Article ${esc(r.article||"not identified")} • Section ${esc(r.section||r.subsection||"not identified")} • printed page ${esc(r.printed_page_start)}</div>
-     <h2>🤖 AI Explanation</h2><p>The passage above is the closest indexed match. This explanation is an aid to finding the relevant language and is not a substitute for Union interpretation or representation.</p>`;
-   }
- }
- }
- html+=`</div>`;
- box.innerHTML=html;
+async function loadKnowledgeBase() {
+  setStatus("Loading CBA knowledge base…", false);
+  try {
+    const response = await fetch("./CBA_Search_Index.jsonl", {cache:"no-store"});
+    if (!response.ok) throw new Error("CBA_Search_Index.jsonl returned HTTP " + response.status);
+    const raw = await response.text();
+    CBA_RECORDS = raw.split(/\r?\n/).map(x => x.trim()).filter(Boolean).map(JSON.parse);
+    try {
+      const o = await fetch("./CBA_Verified_Table_Overlay_v5.json", {cache:"no-store"});
+      if (o.ok) CBA_OVERLAY = await o.json();
+    } catch (_) {}
+    if (!CBA_RECORDS.length) throw new Error("The searchable CBA index is empty.");
+    CBA_READY = true;
+    setStatus("CBA Knowledge Base: Loaded ✓ (" + CBA_RECORDS.length + " indexed passages)", true);
+    const btn = document.querySelector('button[onclick*="ask"]');
+    if (btn) btn.disabled = false;
+  } catch (err) {
+    CBA_READY = false;
+    setStatus("CBA Knowledge Base: ERROR — " + err.message, false);
+    console.error(err);
+  }
 }
-function ask(){answerQuestion();}
-function clearAnswer(){document.getElementById("q").value="";document.getElementById("answer").innerHTML="";}
-function copyFeedback(){
- const text=document.getElementById("feedback").value.trim();
- if(!text)return;
- navigator.clipboard?.writeText(text);
- document.getElementById("copyStatus").textContent=" Feedback copied.";
+function answerQuestion(q) {
+  const unionReminder =
+    "<strong>Union reminder:</strong> Please use this tool for straightforward CBA/contract questions only. " +
+    "Anything beyond a straightforward contract question should be discussed directly with a Union representative. " +
+    "Do not enter names, medical information, or other identifying information. " +
+    "This is an informational tool and does not replace advice or representation from ETA/NYSUT.<br><br>";
+  if (!CBA_READY) return unionReminder + "The CBA knowledge base has not loaded yet.";
+  if (privacyWarning(q)) return unionReminder + "Please remove personal or identifying information and ask the contract question without those details.";
+  if (highStakes(q)) return unionReminder + "This appears to be a high-stakes employment issue. Please discuss it directly with a Union representative.";
+  const results = search(q);
+  if (!results.length || !strong(q, results)) {
+    return unionReminder + "I could not find enough support in the CBA to answer that confidently. The contract does not provide a clear answer in the passages retrieved, so I do not want to guess. Please ask a more specific contract question or discuss the issue directly with a Union representative.";
+  }
+  const r = results[0][1];
+  const citation = [r.article, r.section, r.subsection, r.printed_page_start].filter(Boolean).join(" — ");
+  return unionReminder +
+    "<strong>AI interpretation:</strong> The CBA contains a provision relevant to your question.<br><br>" +
+    "<strong>Contract language:</strong><br>" + String(r.exact_contract_language || "").replace(/\n/g,"<br>") +
+    "<br><br><strong>CBA citation:</strong> " + citation;
 }
-
-async function loadLocalFiles(){
- try{
-   const kbResp=await fetch("CBA_Search_Index.jsonl");
-   KB=(await kbResp.text()).split(/\r?\n/).filter(Boolean).map(JSON.parse);
-   const ovResp=await fetch("CBA_Verified_Table_Overlay_v5.json");
-   OVERLAY=await ovResp.json();
- }catch(e){
-   document.getElementById("answer").innerHTML=`<div class="card"><b>Setup notice</b><p>The CBA data files could not be loaded automatically. Open this folder through a local web server or use the included instructions.</p></div>`;
- }
+function ask() {
+  const input = document.getElementById("question") || document.querySelector("textarea") || document.querySelector("input[type=text]");
+  const output = document.getElementById("answer") || document.querySelector(".answer") || document.querySelector("[data-answer]");
+  const q = input ? input.value.trim() : "";
+  if (!q) return;
+  if (output) output.innerHTML = answerQuestion(q);
 }
-loadLocalFiles();
+window.search = search;
+window.answerQuestion = answerQuestion;
+window.ask = ask;
+window.sickLeaveConceptMatch = sickLeaveConceptMatch;
+window.grievanceConceptMatch = grievanceConceptMatch;
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.querySelector('button[onclick*="ask"]');
+  if (btn) btn.disabled = true;
+  loadKnowledgeBase();
+});
 </script>
-</body>
-</html>
+</body></html>
